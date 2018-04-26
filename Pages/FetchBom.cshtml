@@ -1,0 +1,88 @@
+@page "/bom"
+@inject HttpClient Http
+
+<h1>Data from BOM</h1>
+
+@if (bomObservation == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in bomObservation.observations.data)
+            {
+                <tr>
+                    <td>@forecast.local_date_time_full</td>
+                    <td>@forecast.air_temp</td>
+                    <td>@forecast.name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@functions {
+     BomObservation bomObservation;
+
+    protected override async Task OnInitAsync()
+    {
+        try
+        {
+            bomObservation = await Http.GetJsonAsync<BomObservation>("/sample-data/bom-data.json");
+            Console.WriteLine("test");
+            if(bomObservation == null)
+                Console.WriteLine("bomObservation is null");
+            else {
+                Console.WriteLine(bomObservation.observations.header[0].ID);
+                Console.WriteLine(bomObservation.observations.data.Count());
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message + " " + ex.StackTrace);
+        }
+    }
+
+    class Notice {
+        public string copyright {get;set;}
+        public string copyright_url {get;set;}
+        public string disclaimer_url {get;set;}
+        public string feedback_url {get;set;}
+    }
+
+    class Header {
+        public string refresh_message {get;set;}
+        public string ID {get;set;}
+        public string main_ID {get;set;}
+        public string state_time_zone {get;set;}
+        public string time_zone {get;set;}
+        public string product_name {get;set;}
+        public string state {get;set;}
+    }
+
+    class ForecastItem {
+        public string name {get;set;}
+        public string local_date_time_full {get;set;}
+        public decimal air_temp {get;set;}
+    }
+
+    class BomDataFeed
+    {
+        public List<Notice> notice {get;set;}
+        public List<Header> header {get;set;}
+        public List<ForecastItem> data {get;set;}
+    }
+
+    class BomObservation {
+        public BomDataFeed observations {get;set;}
+    }
+}
